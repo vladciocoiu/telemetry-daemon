@@ -1,6 +1,6 @@
 #include "API/API.h"
 
 int main(int argc, char** argv){
-    init();
+    createUser("/r", 3);
     return 0;
 }

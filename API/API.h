@@ -23,13 +23,6 @@ struct server {
     int isInit;
 };
 
-struct response{
-    int success;
-    char op; 
-    char ch_path; 
-    int role;
-    char msg;  
-};
 
 int init();
 

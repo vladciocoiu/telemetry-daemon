@@ -11,6 +11,6 @@ struct response{
     char msg;  
 };
 
-int parseResponse(char *resp, struct resp* rsp);
+int parseResponse(char *resp, struct response *rsp);
 
 #endif
