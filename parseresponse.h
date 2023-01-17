@@ -3,6 +3,14 @@
 #ifndef PARSERESPONSE_H
 #define PARSERESPONSE_H
 
-int parseResponse(char *resp, int* success, char* op, char* ch_path, int* role, char* msg);
+struct response{
+    int success;
+    char op; 
+    char ch_path; 
+    int role;
+    char msg;  
+};
+
+int parseResponse(char *resp, struct resp* rsp);
 
 #endif

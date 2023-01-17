@@ -10,10 +10,11 @@
 #include <time.h>
 #include <pthread.h>
 #include <fcntl.h>
-
+#include "parseresponse.h"
 #include "API.h"
 
 struct server daemonsv;
+
 
 int init(){
     daemonsv.listenfd = socket(AF_INET, SOCK_DGRAM, 0);
@@ -21,31 +22,52 @@ int init(){
     daemonsv.serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
     daemonsv.serv_addr.sin_port = htons(5000);
 
-    char fifo_name[L_tmpnam + 1];
-    tmpnam(fifo_name);
-    if (mkfifo(fifo_name, 0666) == -1)
+    tmpnam(daemonsv.fifo_name);
+    if (mkfifo(daemonsv.fifo_name, 0666) == -1)
     {
         perror("mkfifo");
         exit(EXIT_FAILURE);
     }
+
+    pthread_t threadListenToPipe;
+    pthread_create(&threadListenToPipe, NULL, ListenToPipe, daemonsv.fifo_name);
+    
     return 0;
 }
 
-int SendRequest(char* filename, char* message, int len)
+char* GetServerPipeFd()
 {
-    printf("sendRequest params: fd = %s, message = %s, len = %d\n", filename, message, len);
+    char recvBuff[1024];
+    int len = sizeof(daemonsv.serv_addr);
+    sendto(daemonsv.listenfd, "pipeFd", strlen("pipeFd"), 0, (const struct sockaddr *)&daemonsv.serv_addr, len);
+    int nmb = recvfrom(daemonsv.listenfd, recvBuff, sizeof(recvBuff)-1, 0, (struct sockaddr *) &daemonsv.serv_addr, &len);
+    recvBuff[nmb] = 0;
+    if(fputs(recvBuff, stdout) == EOF)
+    {
+        printf("\n Error : Fputs error\n");
+    }
+    return recvBuff;
+}
+
+int sendRequest(char* filename, char* message, int len)
+{
+    // printf("sendRequest params: fd = %s, message = %s, len = %d\n", filename, message, len);
     int fd = open(filename, O_WRONLY);
     write(fd, message, len);
     return 0;
 }
 
-char* createUser(char* string){
+//tlm_open
+int createUser(char* channel, int role){ 
     //request fd operatia rol mesaj
+    //fd registerUser channel role
     if(!daemonsv.isInit)
         init();
-    char* response;
-
-    return response;
+    char message[1024] = {'\0'};
+    // memset('0', message, sizeof(message));
+    snprintf(message, sizeof(message), "%s registerUser %s %d", daemonsv.fifo_name, channel, role );
+    sendRequest(GetServerPipeFd(), message, strlen(message));
+    return 0;
 }
 
 void* ListenToPipe(void *p)
@@ -64,8 +86,9 @@ void* ListenToPipe(void *p)
          continue;
       }
       recvBuff[readCount] = 0;
-      //parse request there()
-      //and send the response()
+      //parse response here()
+      struct response rsp;
+      parseResponse(&recvBuff,&rsp);
       
       printf("got from pipe: %s\n", recvBuff);
    }
