@@ -5,10 +5,11 @@
 
 struct response{
     int success;
-    char op; 
-    char ch_path; 
+    char op[1024]; 
+    char ch_path[1024]; 
     int role;
-    char msg;  
+    char msg[1024];  
+    int id;
 };
 
 int parseResponse(char *resp, struct response *rsp);

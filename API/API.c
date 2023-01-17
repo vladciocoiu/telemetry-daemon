@@ -10,6 +10,7 @@
 #include <time.h>
 #include <pthread.h>
 #include <fcntl.h>
+#include <sys/stat.h>
 #include "../parseresponse.h"
 #include "API.h"
 
@@ -19,22 +20,27 @@ void* listenToPipe(void *p)
 {
    char* filename = p;
    char recvBuff[1025];
-   memset(recvBuff, '0', sizeof(recvBuff));
+    memset(recvBuff, '\0', sizeof(recvBuff));
    printf("Listen to pipe received value: %s\n", filename);
-   int fd = open(filename, O_RDONLY);
+   int fd = open(filename, O_RDWR);
+    printf("nu e nici de la open\n");
    while(1)
    {
       size_t readCount = read(fd, recvBuff, sizeof(recvBuff));
+      printf("nu e nici de la read\n");
       if(readCount == 0)
       {
+        printf("nimic\n");
          sleep(1);
          continue;
       }
+      printf("recvbuff %s\n", recvBuff);
       recvBuff[readCount] = 0;
       //parse response here()
       struct response rsp;
-      parseResponse(&recvBuff,&rsp);
-      
+      printf("ajunge\n");
+      parseResponse(recvBuff,&rsp);
+      printf("trece\n");
       printf("got from pipe: %s\n", recvBuff);
    }
    pthread_exit(&fd);
@@ -63,7 +69,7 @@ char* GetServerPipeFd(char* recvBuff)
 {
     int len = sizeof(daemonsv.serv_addr);
     sendto(daemonsv.listenfd, "pipeFd", strlen("pipeFd"), 0, (const struct sockaddr *)&daemonsv.serv_addr, len);
-    int nmb = recvfrom(daemonsv.listenfd, recvBuff, sizeof(recvBuff)-1, 0, (struct sockaddr *) &daemonsv.serv_addr, &len);
+    int nmb = recvfrom(daemonsv.listenfd, recvBuff, 1024, 0, (struct sockaddr *) &daemonsv.serv_addr, &len);
     recvBuff[nmb] = 0;
     if(fputs(recvBuff, stdout) == EOF)
     {
@@ -91,6 +97,7 @@ int createUser(char* channel, int role){
     snprintf(message, sizeof(message), "%s registerUser %s %d", daemonsv.fifo_name, channel, role );
     char fd[1024];
     GetServerPipeFd(fd);
+    printf("fd!!! %s\n", fd);
     sendRequest(fd, message, strlen(message));
     return 0;
 }

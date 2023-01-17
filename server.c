@@ -11,6 +11,8 @@
 #include <pthread.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include "parserequest.h"
+#include "daemon.h"
 
 int listenfd = 0, connfd = 0;
 struct sockaddr_in serv_addr, cli_addr;
@@ -46,9 +48,9 @@ void* SendFd(void* p)
    pthread_exit(0);
 }
 
-int SendRequest(char* filename, char* message, int len)
+int SendResponse(char* filename, char* message, int len)
 {
-    printf("sendRequest params: fd = %s, message = %s, len = %d\n", filename, message, len);
+    printf("sendResponse params: fd = %s, message = %s, len = %d\n", filename, message, len);
     int fd = open(filename, O_WRONLY);
     write(fd, message, len);
     return 0;
@@ -71,8 +73,20 @@ void* ListenToPipe(void *p)
       }
       recvBuff[readCount] = 0;
       //parse request there()
-      //and send the response()
-      
+      struct request req;
+      parseRequest(recvBuff,&req);
+      // printf("trece de esizeu4\n");
+      if(strcmp(req.op, "registerUser") == 0){
+         int id;
+         char message[1024];
+         id = tlm_open(req.role, req.ch_path, req.fd);
+         printf("ajunge aici\n");
+         snprintf(message, sizeof(message), "%s 1 %d", req.op, id);
+         printf("message este %s\n", message);
+         SendResponse(req.fd, message, strlen(message));
+         printf("trece de rr\n");
+         // printf("trece de strcmp");
+      }
       printf("got from pipe: %s\n", recvBuff);
    }
    pthread_exit(&fd);

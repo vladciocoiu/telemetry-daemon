@@ -23,10 +23,10 @@ struct tlm {
     int type;
     struct channel * channel;
     void (* message_callback)(struct tlm * token, char * message);
-    char* fd;
+    char fd[32];
 };
 
-struct tlm * tlm_open(int type, char * channel_path, char * fd);
+int tlm_open(int type, char * channel_path, char * fd);
 
 int tlm_callback(struct tlm * token, void (* message_callback)(struct tlm * token, char * message));
 

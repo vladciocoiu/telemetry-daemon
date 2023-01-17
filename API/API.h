@@ -28,4 +28,6 @@ int init();
 
 char* sendReq(char* string);
 
+int createUser(char* channel, int role);
+
 #endif

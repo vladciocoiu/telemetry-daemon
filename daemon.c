@@ -6,7 +6,9 @@
 
 #include "daemon.h"
 
-struct channel * root;
+struct tlm tokens[4096];
+int userscnt = 0;
+struct channel root;
 
 
 struct channel* get_child_by_name(struct channel* parent, char* name) {
@@ -43,9 +45,11 @@ struct channel* get_child_by_name(struct channel* parent, char* name) {
 
 // returns the channel with the given path, or creates a new channel
 struct channel* get_channel(char* path) {
-    char *token = strtok(path, "/");
+    char path2[1024];
+    strncpy(path2, path, 1024);
+    char *token = strtok(path2, "/");
 
-    struct channel * current_ch = root;
+    struct channel * current_ch = &root;
     while (token != NULL) {
         current_ch = get_child_by_name(current_ch, token);
         token = strtok(NULL, "/");
@@ -55,12 +59,14 @@ struct channel* get_channel(char* path) {
 }
 
 // creates a new user for the specified channel
-struct tlm * tlm_open(int type, char * channel_path, char * fd) {
-    struct tlm * token = (struct tlm *)malloc(sizeof(struct tlm));
-    token->type = type;
-    token->channel = get_channel(channel_path);
-    strncpy(token->fd, fd, 21);
-    return token;
+int tlm_open(int type, char * channel_path, char * fd) {
+    struct tlm  token;
+    token.type = type;
+    token.channel = get_channel(channel_path);
+    strncpy(token.fd, fd, 32);
+    userscnt++;
+    tokens[userscnt] = token;
+    return userscnt;
 }
 
 // replaces the callback function with the one provided by the user
@@ -132,8 +138,8 @@ void cleanup(struct channel * ch) {
 }
 
 
-int main() {
-    root = (struct channel *) malloc(sizeof(struct channel));
-    cleanup(root);
-    return 0;
-}
+// int main() {
+//     root = ;
+//     cleanup(root);
+//     return 0;
+// }
