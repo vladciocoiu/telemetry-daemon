@@ -8,6 +8,7 @@
 
 struct channel * root;
 
+
 struct channel* get_child_by_name(struct channel* parent, char* name) {
 
     // find name in the list of children channels
@@ -54,10 +55,11 @@ struct channel* get_channel(char* path) {
 }
 
 // creates a new user for the specified channel
-struct tlm * tlm_open(int type, char * channel_path) {
+struct tlm * tlm_open(int type, char * channel_path, char * fd) {
     struct tlm * token = (struct tlm *)malloc(sizeof(struct tlm));
     token->type = type;
     token->channel = get_channel(channel_path);
+    strncpy(token->fd, fd, 21);
     return token;
 }
 
