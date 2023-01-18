@@ -7,7 +7,8 @@
   - send short messages in channels (under 1024 bytes)
   - read the last message sent in a channel.
   - register a callback function to be called everytime a message is sent in a channel.  
-  The channels are organized in a tree structure. (When you send a message to a channel you also send it to it's childrens)  
+  <a/>
+  The channels are organized in a tree structure. (When you send a message to a channel you also send it to it's childrens) <br>
   Example: if you send a message to /channel/aaa it will also be sent to channel/aaa/a and channel/aaa/b but it won't be sent to channel/bbb
 
 ## How it works:
