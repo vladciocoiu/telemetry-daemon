@@ -3,4 +3,8 @@
 
 # Unignore all with extensions
 !*.*
+
+# Unignore all dirs
+!*/
+
 telemetry.c
