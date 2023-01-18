@@ -50,6 +50,7 @@ void* listenToPipe(void *p)
         (*callbacks[ret.id])(ret.msg);
       }
       printf("Got from pipe: %s\n", recvBuff);
+    printf("\n--------------------------------------------\n\n");
    }
    pthread_exit(&fd);
 }
@@ -97,7 +98,6 @@ char* GetServerPipeFd(char* recvBuff)
 struct response sendRequest(char* filename, char* message, int len)
 {
     printf("sendRequest params: fd = %s, message = %s, len = %d\n", filename, message, len);
-    printf("\n--------------------------------------------\n");
     int fd = open(filename, O_WRONLY);
     write(fd, message, len);
 
