@@ -23,11 +23,20 @@ struct server {
     int isInit;
 };
 
+void(* callbacks[1024])(char* message);
 
 int init();
 
 char* sendReq(char* string);
 
 int createUser(char* channel, int role);
+
+int deleteUser(int id);
+
+int post(int id, char* DM);
+
+int readMessage(int id, char* mesaj);
+
+int addCallback(int id,void (* message_callback)(char* message));
 
 #endif

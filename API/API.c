@@ -15,33 +15,41 @@
 #include "API.h"
 
 struct server daemonsv;
+pthread_mutex_t reqLock;
+struct response ret;
 
 void* listenToPipe(void *p)
 {
    char* filename = p;
    char recvBuff[1025];
     memset(recvBuff, '\0', sizeof(recvBuff));
-   printf("Listen to pipe received value: %s\n", filename);
+   printf("Listen to pipe: %s\n", filename);
    int fd = open(filename, O_RDWR);
-    printf("nu e nici de la open\n");
    while(1)
    {
       size_t readCount = read(fd, recvBuff, sizeof(recvBuff));
-      printf("nu e nici de la read\n");
       if(readCount == 0)
       {
-        printf("nimic\n");
          sleep(1);
          continue;
       }
-      printf("recvbuff %s\n", recvBuff);
       recvBuff[readCount] = 0;
       //parse response here()
       struct response rsp;
-      printf("ajunge\n");
-      parseResponse(recvBuff,&rsp);
-      printf("trece\n");
-      printf("got from pipe: %s\n", recvBuff);
+      parseResponse(recvBuff, &rsp);
+      if(strcmp(rsp.op, "call") != 0){
+        ret.id = rsp.id;
+        strncpy(ret.msg, rsp.msg, 1024);
+        ret.success = rsp.success; 
+        pthread_mutex_unlock(&reqLock);
+      }
+      else
+      {
+        ret.id = rsp.id;
+        strncpy(ret.msg, rsp.msg, 1024);
+        (*callbacks[ret.id])(ret.msg);
+      }
+      printf("Got from pipe: %s\n", recvBuff);
    }
    pthread_exit(&fd);
 }
@@ -58,6 +66,13 @@ int init(){
         perror("mkfifo");
         exit(EXIT_FAILURE);
     }
+
+    if (pthread_mutex_init(&reqLock, NULL) != 0) {
+        printf("\n mutex init has failed\n");
+        return 1;
+    }
+
+    pthread_mutex_lock(&reqLock);
 
     pthread_t threadListenToPipe;
     pthread_create(&threadListenToPipe, NULL, listenToPipe, daemonsv.fifo_name);
@@ -78,12 +93,15 @@ char* GetServerPipeFd(char* recvBuff)
     printf("!!! %s\n", recvBuff);
 }
 
-int sendRequest(char* filename, char* message, int len)
+struct response sendRequest(char* filename, char* message, int len)
 {
     printf("sendRequest params: fd = %s, message = %s, len = %d\n", filename, message, len);
     int fd = open(filename, O_WRONLY);
     write(fd, message, len);
-    return 0;
+
+    pthread_mutex_lock(&reqLock);
+
+    return ret;
 }
 
 //tlm_open
@@ -97,8 +115,44 @@ int createUser(char* channel, int role){
     snprintf(message, sizeof(message), "%s registerUser %s %d", daemonsv.fifo_name, channel, role );
     char fd[1024];
     GetServerPipeFd(fd);
-    printf("fd!!! %s\n", fd);
+    struct response ret = sendRequest(fd, message, strlen(message));
+    return ret.id;
+}
+
+int deleteUser(int id){ 
+    char message[1024] = {'\0'};
+    snprintf(message, sizeof(message), "%s deleteUser %d", daemonsv.fifo_name, id);
+    char fd[1024];
+    GetServerPipeFd(fd);
     sendRequest(fd, message, strlen(message));
     return 0;
 }
 
+int post(int id, char* DM){
+    char message[1024] = {'\0'};
+    snprintf(message, sizeof(message), "%s post %d %s", daemonsv.fifo_name, id, DM);
+    char fd[1024];
+    GetServerPipeFd(fd);
+    sendRequest(fd, message, strlen(message));
+    return 0;
+}
+
+int readMessage(int id, char* mesaj){
+    char message[1024] = {'\0'};
+    snprintf(message, sizeof(message), "%s read %d", daemonsv.fifo_name, id);
+    char fd[1024];
+    GetServerPipeFd(fd);
+    struct response ret = sendRequest(fd, message, strlen(message));
+    strncpy(mesaj, ret.msg, 1024);
+    return 0;
+}
+
+int addCallback(int id,void (* message_callback)(char* message)){
+    char message[1024] = {'\0'};
+    snprintf(message, sizeof(message), "%s callback %d", daemonsv.fifo_name, id);
+    char fd[1024];
+    callbacks[id] = message_callback;
+    GetServerPipeFd(fd);
+    sendRequest(fd, message, strlen(message));
+    return 0;
+}

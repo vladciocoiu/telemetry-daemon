@@ -21,7 +21,7 @@ int parseResponse(char *resp, struct response* ret) {
     strncpy(ret->op, params[0], 1024);
     ret->success = atoi(params[1]);
 
-    // registerUser success id
+    // registerUser success id  xxxxxxxxxxxxxxxxxxxxxxxx
     if(strcmp(ret->op, "registerUser") == 0) {
         if(size != 3) return -1;
 
@@ -45,12 +45,16 @@ int parseResponse(char *resp, struct response* ret) {
         return 0;
     }
 
-    // callback success userid message
+    // callback success 
     if(strcmp(ret->op, "callback") == 0) {
-        if(size != 4) return -1;
-        ret->id = atoi(params[2]);
-        strncpy(ret->msg, params[3], 1024);
+        if(size != 2) return -1;
+        return 0;
     }
+    // if(strcmp(ret->op, "callback") == 0) {
+    //     if(size != 4) return -1;
+    //     ret->id = atoi(params[2]);
+    //     strncpy(ret->msg, params[3], 1024);
+    // }
 
     return -1;
 }

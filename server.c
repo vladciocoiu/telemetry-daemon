@@ -48,6 +48,27 @@ void* SendFd(void* p)
    pthread_exit(0);
 }
 
+void callUsers(struct channel * ch, char * message) {
+    // replace message in channel
+   for(int i = 1; i <= userscnt; i++){
+        if(tokens[i].channel == ch && tokens[i].callback == 1){
+
+         snprintf(message, sizeof(message), "call %d %s", i, message);
+         SendResponse(tokens[i].fd, message, strlen(message));
+        }
+   }
+            
+    
+
+    // replace message in children channels
+    for(struct channel_list_node * node = ch->children; node != NULL; node = node->next) {
+        
+        callUsers(node->ch, message);
+    }
+
+}
+
+
 int SendResponse(char* filename, char* message, int len)
 {
     printf("sendResponse params: fd = %s, message = %s, len = %d\n", filename, message, len);
@@ -72,20 +93,43 @@ void* ListenToPipe(void *p)
          continue;
       }
       recvBuff[readCount] = 0;
-      //parse request there()
       struct request req;
       parseRequest(recvBuff,&req);
-      // printf("trece de esizeu4\n");
       if(strcmp(req.op, "registerUser") == 0){
          int id;
          char message[1024];
          id = tlm_open(req.role, req.ch_path, req.fd);
-         printf("ajunge aici\n");
          snprintf(message, sizeof(message), "%s 1 %d", req.op, id);
-         printf("message este %s\n", message);
          SendResponse(req.fd, message, strlen(message));
-         printf("trece de rr\n");
-         // printf("trece de strcmp");
+      }
+
+      if(strcmp(req.op, "deleteUser") == 0){
+         char message[1024];
+         tlm_close(req.id);
+         snprintf(message, sizeof(message), "%s 1", req.op);
+         SendResponse(req.fd, message, strlen(message));
+      }
+
+      if(strcmp(req.op, "post") == 0){
+         char message[1024];
+         tlm_post(req.id, req.msg);
+         snprintf(message, sizeof(message), "%s 1", req.op);
+         SendResponse(req.fd, message, strlen(message));
+         callUsers(tokens[req.id].channel, req.msg);
+      }
+
+      if(strcmp(req.op, "read") == 0){
+         char message[1024];
+         char* mesaj = tlm_read(req.id);
+         snprintf(message, sizeof(message), "%s 1 %s", req.op, mesaj);
+         SendResponse(req.fd, message, strlen(message));
+      }
+
+      if(strcmp(req.op, "callback") == 0){
+         char message[1024];
+         tlm_callback(req.id);
+         snprintf(message, sizeof(message), "%s 1", req.op);
+         SendResponse(req.fd, message, strlen(message));
       }
       printf("got from pipe: %s\n", recvBuff);
    }

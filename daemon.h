@@ -7,6 +7,8 @@
 #define TLM_SUBSCRIBER 0x2
 #define TLM_BOTH 0x3
 
+int userscnt;
+
 struct channel {
     char name[64];
     unsigned int message_id;
@@ -22,19 +24,20 @@ struct channel_list_node {
 struct tlm {
     int type;
     struct channel * channel;
-    void (* message_callback)(struct tlm * token, char * message);
+    int callback;
     char fd[32];
 };
+struct tlm tokens[4096];
+
 
 int tlm_open(int type, char * channel_path, char * fd);
 
-int tlm_callback(struct tlm * token, void (* message_callback)(struct tlm * token, char * message));
+int tlm_callback(int id);
 
-const char * tlm_read(struct tlm * token, unsigned int * message_id);
+char * tlm_read(int id);
 
-int tlm_post(struct tlm * token, char * message);
+int tlm_post(int id, char * message);
 
-void tlm_close(struct tlm * token);
-
+void tlm_close(int id);
 
 #endif
