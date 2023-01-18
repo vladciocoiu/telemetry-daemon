@@ -20,7 +20,7 @@ struct sockaddr_in serv_addr, cli_addr;
 void* SendFd(void* p)
 {
    char* fName = p;
-   printf("Received value: %s", fName);
+ // printf("Received value: %s", fName);
 
    char recvBuff[1025];
    char sendBuff[1025];
@@ -29,7 +29,7 @@ void* SendFd(void* p)
    memset(&serv_addr, '0', sizeof(serv_addr));
    
    snprintf(sendBuff, sizeof(sendBuff), "%s", fName);
-   printf("sending %s", sendBuff);
+ // printf("sending %s", sendBuff);
    int len = sizeof(cli_addr);
       
    
@@ -39,13 +39,21 @@ void* SendFd(void* p)
       recvBuff[nrOfBytesReceived] = 0;
       if(strcmp(recvBuff, "pipeFd") == 0)
       {
-         printf("bits sent %d bytes to file descriptor %d\n",sendto(listenfd, sendBuff, strlen(sendBuff), 0, (const struct sockaddr *)&cli_addr, len), listenfd );
-         perror("Error");
+       printf("bits sent %d bytes to file descriptor %d\n",sendto(listenfd, sendBuff, strlen(sendBuff), 0, (const struct sockaddr *)&cli_addr, len), listenfd );
       }
       sleep(1);
    }
    // Return reference to global variable:
    pthread_exit(0);
+}
+
+int SendResponse(char* filename, char* message, int len)
+{
+  // printf("sendResponse params: fd = %s, message = %s, len = %d\n", filename, message, len);
+    int fd = open(filename, O_WRONLY);
+    write(fd, message, len);
+    close(fd);
+    return 0;
 }
 
 void callUsers(struct channel * ch, char * message) {
@@ -68,21 +76,12 @@ void callUsers(struct channel * ch, char * message) {
 
 }
 
-
-int SendResponse(char* filename, char* message, int len)
-{
-    printf("sendResponse params: fd = %s, message = %s, len = %d\n", filename, message, len);
-    int fd = open(filename, O_WRONLY);
-    write(fd, message, len);
-    return 0;
-}
-
 void* ListenToPipe(void *p)
 {
    char* filename = p;
    char recvBuff[1025];
    memset(recvBuff, '0', sizeof(recvBuff));
-   printf("Listen to pipe received value: %s\n", filename);
+ // printf("Listen to pipe received value: %s\n", filename);
    int fd = open(filename, O_RDONLY);
    while(1)
    {
@@ -131,15 +130,12 @@ void* ListenToPipe(void *p)
          snprintf(message, sizeof(message), "%s 1", req.op);
          SendResponse(req.fd, message, strlen(message));
       }
-      printf("got from pipe: %s\n", recvBuff);
+    // printf("got from pipe: %s\n", recvBuff);
    }
    pthread_exit(&fd);
 }
 
-int main(int argc, char *argv[])
-{
-
-   
+int initServer() {
    time_t ticks;
 
    listenfd = socket(AF_INET, SOCK_DGRAM, 0);
@@ -155,7 +151,7 @@ int main(int argc, char *argv[])
    tmpnam(fifo_name);
    if (mkfifo(fifo_name, 0666) == -1)
    {
-      perror("mkfifo");
+      // perror("mkfifo");
       exit(EXIT_FAILURE);
    }
    //close(pipefd[1]);
@@ -166,7 +162,7 @@ int main(int argc, char *argv[])
    pthread_create(&threadListenToPipe, NULL, ListenToPipe, fifo_name);
 
 
-   printf("sended\n");
+ // printf("sended\n");
 
    pthread_join(threadSendFd, NULL);
    sleep(1);

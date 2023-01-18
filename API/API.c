@@ -90,12 +90,14 @@ char* GetServerPipeFd(char* recvBuff)
     {
         printf("\n Error : Fputs error\n");
     }
-    printf("!!! %s\n", recvBuff);
+    printf("\n");
+    // printf("!!! %s\n", recvBuff);
 }
 
 struct response sendRequest(char* filename, char* message, int len)
 {
     printf("sendRequest params: fd = %s, message = %s, len = %d\n", filename, message, len);
+    printf("\n--------------------------------------------\n");
     int fd = open(filename, O_WRONLY);
     write(fd, message, len);
 

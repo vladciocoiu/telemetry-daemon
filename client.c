@@ -15,24 +15,25 @@ int sockfd;
 char recvBuff[1024];
 struct sockaddr_in serv_addr; 
 
-char* GetServerPipeFd()
-{
-    int len = sizeof(serv_addr);
-    sendto(sockfd, "pipeFd", strlen("pipeFd"), 0, (const struct sockaddr *)&serv_addr, len);
-    int nmb = recvfrom(sockfd, recvBuff, sizeof(recvBuff)-1, 0, (struct sockaddr *) &serv_addr, &len);
-    recvBuff[nmb] = 0;
-    if(fputs(recvBuff, stdout) == EOF)
-    {
-        printf("\n Error : Fputs error\n");
-    }
-    return recvBuff;
-}
+// char* GetServerPipeFd()
+// {
+//     int len = sizeof(serv_addr);
+//     sendto(sockfd, "pipeFd", strlen("pipeFd"), 0, (const struct sockaddr *)&serv_addr, len);
+//     int nmb = recvfrom(sockfd, recvBuff, sizeof(recvBuff)-1, 0, (struct sockaddr *) &serv_addr, &len);
+//     recvBuff[nmb] = 0;
+//     if(fputs(recvBuff, stdout) == EOF)
+//     {
+//         printf("\n Error : Fputs error\n");
+//     }
+//     return recvBuff;
+// }
 
 int SendRequest(char* filename, char* message, int len)
 {
     printf("sendRequest params: fd = %s, message = %s, len = %d\n", filename, message, len);
     int fd = open(filename, O_WRONLY);
     write(fd, message, len);
+    close(fd);
     return 0;
 }
 
