@@ -92,7 +92,6 @@ char* GetServerPipeFd(char* recvBuff)
         printf("\n Error : Fputs error\n");
     }
     printf("\n");
-    // printf("!!! %s\n", recvBuff);
 }
 
 struct response sendRequest(char* filename, char* message, int len)
