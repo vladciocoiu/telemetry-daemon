@@ -11,7 +11,7 @@
 #include <pthread.h>
 #include <fcntl.h>
 #include <sys/stat.h>
-#include "../parseresponse.h"
+#include "parseresponse.h"
 #include "API.h"
 
 struct server daemonsv;

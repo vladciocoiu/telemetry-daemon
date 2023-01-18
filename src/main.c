@@ -1,4 +1,4 @@
-#include "API/API.h"
+#include "API.h"
 
 void functie(char* message){
     printf("merge %s\n", message);
