@@ -1,4 +1,6 @@
-t
-d
-p
+# Ignore all
+*
+
+# Unignore all with extensions
+!*.*
 telemetry.c

@@ -23,6 +23,9 @@
    - deleteUser : deletes the user.
 
 ## How to run:
+  Cd into src directory:
+  ```cd src```
+  
   Right now the project requires the gcc compiler.
   The library + main code will be compiled with:
   ```
