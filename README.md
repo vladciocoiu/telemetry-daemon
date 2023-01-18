@@ -31,7 +31,7 @@
   Right now the project requires the gcc compiler.
   The library + main code will be compiled with:
   ```
-  gcc main.c API/API.c parseresponse.c -pthread -o main
+  gcc main.c API.c parseresponse.c -pthread -o main
   ```
   The server code will be compiled with:
   ```
